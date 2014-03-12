@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+           id="org.apache.cordova.plugin.JavascriptReceiver"
+      version="0.1.0">
+    <name>Javascript Receiver</name>
+    <description>test</description>
+    <license>MIT</license>
+    <keywords>phonegap</keywords>
+ 
+    <!-- android -->
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="JavascriptReceiver">
+                <param name="android-package" value="org.apache.cordova.plugin.JavascriptReceiver"/>
+            </feature>
+        </config-file>
+ 
+        <source-file src="JavascriptReceiver.java" target-dir="src/org/apache/cordova/plugin/javascriptreceiver" />      
+     </platform>          
+</plugin>
