@@ -41,9 +41,11 @@ public class Main {
 			for (Element row : table.select("tr")) {
 				Elements tds = row.select("td");
 				for (int i = 0; i < tds.size(); i++) {
-					Elem elem = parseElement(tds.get(i));
-					if (elem != null) {
-						tablerow.add(elem);
+					for(int k = 0; k < tds.get(i).children().size(); k++){
+						Elem elem = parseElement(tds.get(i).child(k));
+						if (elem != null) {
+							tablerow.add(elem);
+						}
 					}
 				}
 			}
