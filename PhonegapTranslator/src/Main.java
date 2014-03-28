@@ -11,7 +11,7 @@ import org.jsoup.select.Elements;
 
 public class Main {
 
-	private boolean table = false;
+	private static boolean table = false;
 	private static int variableIndex = 0;
 	private static Document doc;
 
@@ -29,10 +29,14 @@ public class Main {
 		}
 
 		ArrayList<Elem> list = main.parseFile();
+		if(table) System.out.println(main.generateTableView());
+
 		for (int i = 0; i < list.size(); i++) {
 			Elem elem = list.get(i);
 			System.out.println(elem.generateJava());
 		}
+		
+		System.out.println("setContentView(layout);\n");
 	}
 
 	public ArrayList<Elem> parseFile() {
@@ -41,6 +45,7 @@ public class Main {
 
 		ArrayList<ArrayList<Elem>> rows = new ArrayList<ArrayList<Elem>>();
 		for (Element table : doc.select("table")) {
+			this.table = true;
 			for (Element row : table.select("tr")) {
 				ArrayList<Elem> tablerow = new ArrayList<Elem>();
 				Elements tds = row.select("td");
@@ -90,8 +95,6 @@ public class Main {
 	public String generateTableView() {
 		String ret = "TableLayout.LayoutParams tableParams = new TableLayout.LayoutParams(TableLayout."
 				+ "LayoutParams.WRAP_CONTENT, TableLayout.LayoutParams.WRAP_CONTENT);\n"
-				+ "TableRow.LayoutParams rowParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, "
-				+ "TableRow.LayoutParams.WRAP_CONTENT);\n"
 				+ "TableLayout layout = new TableLayout(this);\n"
 				+ "layout.setLayoutParams(tableParams);\n";
 
