@@ -1,5 +1,9 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,6 +18,7 @@ public class Main {
 	private static boolean table = false;
 	private static int variableIndex = 0;
 	private static Document doc;
+	private static StringBuffer buff;
 
 	/**
 	 * @param args
@@ -21,22 +26,65 @@ public class Main {
 	public static void main(String[] args) {
 		Main main = new Main();
 
-		File input = new File("tmp/index.html");
+		File htmlFile = new File("tmp/index.html");
 		try {
-			doc = Jsoup.parse(input, "UTF-8", "");
+			doc = Jsoup.parse(htmlFile, "UTF-8", "");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		String file = "";
+		String path = "tmp/HelloWorld.java";
+		try {
+			file = readFile(path, Charset.defaultCharset());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
+		if(file.equals("")) return;
+		
+		String view = "";
+		String global = "";
 		ArrayList<Elem> list = main.parseFile();
-		if(table) System.out.println(main.generateTableView());
+		if (table)
+			view += main.generateTableView();
 
 		for (int i = 0; i < list.size(); i++) {
 			Elem elem = list.get(i);
-			System.out.println(elem.generateJava());
+			view+= elem.generatePostJava();
+			global+= elem.generateGlobals();
 		}
+
+		view += "setContentView(layout);\n";
+		buff = new StringBuffer(file);
+		buff.insert(buff.indexOf("{") + 1, "\npublic CordovaActivity ac;");
+		buff.insert(buff.indexOf("{") + 1, global);
+
 		
-		System.out.println("setContentView(layout);\n");
+		int index = buff.indexOf("public void onCreate");
+		int insert = 0;
+		if(index != -1){
+			int brCount = 0;
+			for(int i = index; i < buff.length(); i++){
+				if (buff.charAt(i) == '{') brCount++;
+				if(buff.charAt(i) == '}'){
+					if(brCount > 1) brCount--;
+					else {
+						insert = i;
+						break;
+					}
+				}
+			}
+		} else {
+			System.out.println("onCreate not found. java file not valid");
+		}
+		buff.insert(insert, view);
+		System.out.println(buff);
+	}
+
+	static String readFile(String path, Charset encoding) throws IOException {
+		byte[] encoded = Files.readAllBytes(Paths.get(path));
+		return encoding.decode(ByteBuffer.wrap(encoded)).toString();
 	}
 
 	public ArrayList<Elem> parseFile() {
@@ -103,7 +151,9 @@ public class Main {
 	}
 
 	public interface Elem {
-		public String generateJava();
+		public String generateGlobals();
+
+		public String generatePostJava();
 
 		public String getName();
 	}
@@ -120,7 +170,7 @@ public class Main {
 		}
 
 		@Override
-		public String generateJava() {
+		public String generatePostJava() {
 			String ret = "Button button"
 					+ variableIndex
 					+ " = new Button(this);\n"
@@ -148,12 +198,18 @@ public class Main {
 		public String getName() {
 			return this.name;
 		}
+
+		@Override
+		public String generateGlobals() {
+			return "";
+		}
 	}
 
 	public class Table implements Elem {
 
 		ArrayList<ArrayList<Elem>> elements;
 		String name;
+		String globals = "";
 
 		public Table(ArrayList<ArrayList<Elem>> elements) {
 			this.elements = elements;
@@ -161,7 +217,7 @@ public class Main {
 		}
 
 		@Override
-		public String generateJava() {
+		public String generatePostJava() {
 			String ret = "";
 			for (int i = 0; i < this.elements.size(); i++) {
 				int num = variableIndex;
@@ -172,14 +228,20 @@ public class Main {
 				ArrayList<Elem> row = this.elements.get(i);
 				String name;
 				for (int j = 0; j < row.size(); j++) {
-					ret += row.get(j).generateJava();
+					ret += row.get(j).generatePostJava();
 					name = row.get(j).getName();
 					ret += "tableRow" + num + ".addView(" + name + ");\n";
+					this.globals += row.get(j).generateGlobals();
 				}
 				ret += "layout.addView(tableRow" + num + ");\n";
 			}
 
 			return ret;
+		}
+		
+		@Override
+		public String generateGlobals() {
+			return globals;
 		}
 
 		@Override
@@ -199,11 +261,10 @@ public class Main {
 		}
 
 		@Override
-		public String generateJava() {
+		public String generatePostJava() {
 			String ret = "text" + variableIndex + " = new TextView(this);\n"
 					+ "text" + variableIndex + ".setWidth(100);\n";
 			this.name = "text" + variableIndex;
-
 			variableIndex++;
 			return ret;
 		}
@@ -212,6 +273,10 @@ public class Main {
 		public String getName() {
 			return name;
 		}
-
+		
+		@Override
+		public String generateGlobals() {
+			return "public TextView " + getName() + ";\n";
+		}
 	}
 }
