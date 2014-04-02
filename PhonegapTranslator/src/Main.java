@@ -35,6 +35,11 @@ public class Main {
 		
 		String file = "";
 		String path = "tmp/HelloWorld.java";
+		  int start = path.lastIndexOf("/") + 1;
+		  int end = path.lastIndexOf(".");
+		  end = start < end ? end : path.length();
+		  String name = path.substring(start, end);
+
 		try {
 			file = readFile(path, Charset.defaultCharset());
 		} catch (IOException e) {
@@ -43,7 +48,7 @@ public class Main {
 
 		if(file.equals("")) return;
 		
-		String view = "";
+		String view = "ac = this;\n";
 		String global = "";
 		ArrayList<Elem> list = main.parseFile();
 		if (table)

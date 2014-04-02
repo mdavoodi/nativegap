@@ -7,9 +7,6 @@ import org.json.JSONException;
 
 import com.example.simplecalc.HelloWorld;
 
-import android.content.Context;
-import android.content.Intent;
-
 /**
  * This class echoes a string called from JavaScript.
  */
@@ -17,14 +14,14 @@ public class JavascriptReceiver extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        if (action.equals("echo")) {
+        if (action.equals("ReadOut")) {
             final String message = args.getString(0);
         	final HelloWorld view = (HelloWorld) this.cordova.getActivity();
         	view.runOnUiThread(new Runnable() {
 
 				@Override
 				public void run() {
-	            	view.box.setText(message);					
+	            	view.text1.setText(message);					
 				}
 
         	});
