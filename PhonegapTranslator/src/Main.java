@@ -32,22 +32,19 @@ public class Main {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		String file = "";
+
+		String sourceFile = "";
 		String path = "tmp/HelloWorld.java";
-		  int start = path.lastIndexOf("/") + 1;
-		  int end = path.lastIndexOf(".");
-		  end = start < end ? end : path.length();
-		  String name = path.substring(start, end);
 
 		try {
-			file = readFile(path, Charset.defaultCharset());
+			sourceFile = readFile(path, Charset.defaultCharset());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		if(file.equals("")) return;
-		
+		if (sourceFile.equals(""))
+			return;
+
 		String view = "ac = this;\n";
 		String global = "";
 		ArrayList<Elem> list = main.parseFile();
@@ -56,24 +53,25 @@ public class Main {
 
 		for (int i = 0; i < list.size(); i++) {
 			Elem elem = list.get(i);
-			view+= elem.generatePostJava();
-			global+= elem.generateGlobals();
+			view += elem.generatePostJava();
+			global += elem.generateGlobals();
 		}
 
 		view += "setContentView(layout);\n";
-		buff = new StringBuffer(file);
+		buff = new StringBuffer(sourceFile);
 		buff.insert(buff.indexOf("{") + 1, "\npublic CordovaActivity ac;");
 		buff.insert(buff.indexOf("{") + 1, global);
 
-		
 		int index = buff.indexOf("public void onCreate");
 		int insert = 0;
-		if(index != -1){
+		if (index != -1) {
 			int brCount = 0;
-			for(int i = index; i < buff.length(); i++){
-				if (buff.charAt(i) == '{') brCount++;
-				if(buff.charAt(i) == '}'){
-					if(brCount > 1) brCount--;
+			for (int i = index; i < buff.length(); i++) {
+				if (buff.charAt(i) == '{')
+					brCount++;
+				if (buff.charAt(i) == '}') {
+					if (brCount > 1)
+						brCount--;
 					else {
 						insert = i;
 						break;
@@ -85,6 +83,68 @@ public class Main {
 		}
 		buff.insert(insert, view);
 		System.out.println(buff);
+
+		int start = path.lastIndexOf("/") + 1;
+		int end = path.lastIndexOf(".");
+		end = start < end ? end : path.length();
+		String name = path.substring(start, end);
+
+		start = buff.indexOf("package");
+		end = buff.indexOf(";", start);
+		String pckge = buff.substring(start, end).split(" ")[1];
+		String receiver = "package org.apache.cordova.plugin;\n"
+				+ "import org.apache.cordova.CordovaPlugin;\n"
+				+ "import org.apache.cordova.CallbackContext;\n"
+				+ "import org.json.JSONArray;import org.json.JSONException;\n"
+				+ "import "
+				+ pckge
+				+ "."
+				+ name
+				+ ";\n"
+				+ "public class JavascriptReceiver extends CordovaPlugin {\n"
+				+ "@Override\n"
+				+ "public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {\n";
+
+		String jsReceiver = "window.javascriptreceiver = function(str, callback) {\n";
+		
+		for (Elem elem : list) {
+			if (elem instanceof Table) {
+
+				Table t = (Table) elem;
+				ArrayList<Elem> elements = ((Table) elem).getElements();
+
+				for (Elem e : elements) {
+					if (e instanceof TextView) {
+
+						TextView v = (TextView) e;
+						String statement = "if (action.equals(\""
+								+ v.id
+								+ "\")) {final String message = args.getString(0);\n"
+								+ "final " + name + " view = (" + name
+								+ ") this.cordova.getActivity();\n"
+								+ "view.runOnUiThread(new Runnable() {\n"
+								+ "@Override\n" + "public void run() {\n"
+								+ "view." + v.getName()
+								+ ".setText(message);\n" + "}\n" + "});\n"
+								+ "return true;\n" + "}\n";
+						receiver += statement;
+						
+						jsReceiver += "var val = $(\"input[name=" + v.id + "]\").val();\n" +
+								"cordova.exec(callback, function(err) {\n" +
+								"callback('Nothing to echo.');}, \"JavascriptReceiver\", \""+ v.id +"\", [val]);\n";
+					}
+				}
+			}
+		}
+
+		receiver += "return false;\n}\n}\n";
+
+		System.out.println(receiver);
+		
+		jsReceiver += "};";
+		
+		System.out.println(jsReceiver);
+
 	}
 
 	static String readFile(String path, Charset encoding) throws IOException {
@@ -243,7 +303,7 @@ public class Main {
 
 			return ret;
 		}
-		
+
 		@Override
 		public String generateGlobals() {
 			return globals;
@@ -252,6 +312,19 @@ public class Main {
 		@Override
 		public String getName() {
 			return this.name;
+		}
+
+		public ArrayList<Elem> getElements() {
+			ArrayList<Elem> list = new ArrayList<Elem>();
+			for (ArrayList<Elem> row : this.elements) {
+				for (Elem elem : row) {
+					list.add(elem);
+				}
+
+			}
+
+			return list;
+
 		}
 
 	}
@@ -278,7 +351,7 @@ public class Main {
 		public String getName() {
 			return name;
 		}
-		
+
 		@Override
 		public String generateGlobals() {
 			return "public TextView " + getName() + ";\n";
