@@ -27,97 +27,44 @@
         <title>Hello World</title>
     </head>
     <body>
-		<FORM name="Keypad" action="">
-			<TABLE>
-				<B>
-					<TABLE border=2 width=50 height=60 cellpadding=1 cellspacing=5>
-						<TR>
-							<TD colspan=3 align=middle>
-								<input name="ReadOut" type="Text" size=24 value="0" width=100%>
-							</TD>
-							<TD>
-							</TD>
-							<TD>
-								<input name="btnClear" type="Button" value="  C  " onclick="Clear()">
-							</TD>
-							<TD>
-								<input name="btnClearEntry" type="Button" value="  CE " onclick="ClearEntry()">
-							</TD>
-						</TR>
-						<TR>
-							<TD>
-								<input name="btnSeven" type="Button" value="  7  " onclick="NumPressed(7)">
-							</TD>
-							<TD>
-								<input name="btnEight" type="Button" value="  8  " onclick="NumPressed(8)">
-							</TD>
-							<TD>
-								<input name="btnNine" type="Button" value="  9  " onclick="NumPressed(9)">
-							</TD>
-							<TD>
-							</TD>
-							<TD>
-								<input name="btnNeg" type="Button" value=" +/- " onclick="Neg()">
-							</TD>
-							<TD>
-								<input name="btnPercent" type="Button" value="  % " onclick="Percent()">
-							</TD>
-						</TR>
-						<TR>
-							<TD>
-								<input name="btnFour" type="Button" value="  4  " onclick="NumPressed(4)">
-							</TD>
-							<TD>
-								<input name="btnFive" type="Button" value="  5  " onclick="NumPressed(5)">
-							</TD>
-							<TD>
-								<input name="btnSix" type="Button" value="  6  " onclick="NumPressed(6)">
-							</TD>
-							<TD>
-							</TD>
-							<TD align=middle>
-								<input name="btnPlus" type="Button" value="  +  " onclick="Operation('+')">
-							</TD>
-							<TD align=middle>
-								<input name="btnMinus" type="Button" value="   -   " onclick="Operation('-')">
-							</TD>
-						</TR>
-						<TR>
-							<TD>
-								<input name="btnOne" type="Button" value="  1  " onclick="NumPressed(1)">
-							</TD>
-							<TD>
-								<input name="btnTwo" type="Button" value="  2  " onclick="NumPressed(2)">
-							</TD>
-							<TD>
-								<input name="btnThree" type="Button" value="  3  " onclick="NumPressed(3)">
-							</TD>
-							<TD>
-							</TD>
-							<TD align=middle>
-								<input name="btnMultiply" type="Button" value="  *  " onclick="Operation('*')">
-							</TD>
-							<TD align=middle>
-								<input name="btnDivide" type="Button" value="   /   " onclick="Operation('/')">
-							</TD>
-						</TR>
-						<TR>
-							<TD>
-								<input name="btnZero" type="Button" value="  0  " onclick="NumPressed(0)">
-							</TD>
-							<TD>
-								<input name="btnDecimal" type="Button" value="   .  " onclick="Decimal()">
-							</TD>
-							<TD colspan=3>
-							</TD>
-							<TD>
-								<input name="btnEquals" type="Button" value="  =  " onclick="Operation('=')">
-							</TD>
-						</TR>
-					</TABLE>
-				</B>
-			</TABLE>
-		</FORM>
+		<FORM name="live">
+
+<p>Please enter your age:</p><INPUT TYPE="text" NAME="age" VALUE="" SIZE=20> 
+<p>Example: (november 1,1966)</p> <BR><BR><BR>
+<INPUT TYPE="button" NAME="start" VALUE="Start Timer" ONCLICK="lifetimer(this.form)">
+
+<INPUT TYPE="reset" NAME="resetb" VALUE="Reset Age">
+
+<BR><BR>
+
+<TABLE border=0>
+<TR><TD>You are days old:</TD>
+
+<TD>
+
+<INPUT TYPE="text" NAME="time1" VALUE="" size=8>
+
+</TD>
+
+</TR>
+
+<TR><TD>Plus hours old:</TD>
+
+<TD>
+
+<INPUT TYPE="text" NAME="time2" VALUE="" size=8>
+
+</TD>
+
+</TR>
+
+<TR><TD>Plus minutes old:</TD>
+
+<TD><INPUT TYPE="text" NAME="time3" VALUE="" size=8></TD>
+
+</TR>
+</TABLE>
+</FORM>
 		<script type="text/javascript" src="cordova.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
 		<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
@@ -125,76 +72,43 @@
         <script type="text/javascript">
             app.initialize();
         </script>
-		<SCRIPT LANGUAGE="JavaScript">
-			<!-- Begin
-			var FKeyPad = document.Keypad;
-			var Accumulate = 0;
-			var FlagNewNum = false;
-			var PendingOp = "";
+		<SCRIPT LANGUAGE="JAVASCRIPT">
+			function lifetimer(){            
+			        today = new Date()          
 
-			function NumPressed (Num) {
-				if (FlagNewNum) {
-					FKeyPad.ReadOut.value  = Num;
-					FlagNewNum = false;
-				}
-				else {
-					if (FKeyPad.ReadOut.value == "0")
-						FKeyPad.ReadOut.value = Num;
-					else
-						FKeyPad.ReadOut.value += Num;
-				}
-			}
+			        BirthDay = new Date(document.live.age.value)         
 
-			function Operation (Op) {
-				var Readout = FKeyPad.ReadOut.value;
-				if (FlagNewNum && PendingOp != "=");
-				else {
-					FlagNewNum = true;
-					if ( '+' == PendingOp )
-						Accumulate += parseFloat(Readout);
-					else if ( '-' == PendingOp )
-						Accumulate -= parseFloat(Readout);
-					else if ( '/' == PendingOp )
-						Accumulate /= parseFloat(Readout);
-					else if ( '*' == PendingOp )
-						Accumulate *= parseFloat(Readout);
-					else
-						Accumulate = parseFloat(Readout);
-					FKeyPad.ReadOut.value = Accumulate;
-					PendingOp = Op;
-				}
-			}
+			        timeold = (today.getTime() - BirthDay.getTime());         
 
-			function Decimal () {
-				var curReadOut = FKeyPad.ReadOut.value;
-				if (FlagNewNum) {
-					curReadOut = "0.";
-					FlagNewNum = false;
-				}
-				else {
-					if (curReadOut.indexOf(".") == -1)
-						curReadOut += ".";
-				}
-				FKeyPad.ReadOut.value = curReadOut;
-			}
+			        sectimeold = timeold / 1000;         
 
-			function ClearEntry () {
-				FKeyPad.ReadOut.value = "0";
-				FlagNewNum = true;
-			}
+			        secondsold = Math.floor(sectimeold);         
 
-			function Clear () {
-				Accumulate = 0;
-				PendingOp = "";
-				ClearEntry();
-			}
-			function Neg () {
-				FKeyPad.ReadOut.value = parseFloat(FKeyPad.ReadOut.value) * -1;
-			}
-			function Percent () {
-				FKeyPad.ReadOut.value = (parseFloat(FKeyPad.ReadOut.value) / 100) * parseFloat(Accumulate);
-			}
-			// End -->
+			        msPerDay = 24 * 60 * 60 * 1000 ;         
+
+			        timeold = (today.getTime() - BirthDay.getTime());         
+
+			        e_daysold = timeold / msPerDay;         
+
+			        daysold = Math.floor(e_daysold);         
+
+			        e_hrsold = (e_daysold - daysold)*24;         
+
+			        hrsold = Math.floor(e_hrsold);         
+
+			        minsold = Math.floor((e_hrsold - hrsold)*60);           
+
+			        document.live.time1.value = daysold              
+
+			        document.live.time2.value = hrsold               
+
+			        document.live.time3.value = minsold              
+
+			        window.status = "Well at the moment you are " + secondsold + "............ seconds old.";         
+
+			        timerID = setTimeout("lifetimer()",1000)   
+
+			}        
 		</SCRIPT>
     </body>
 </html>

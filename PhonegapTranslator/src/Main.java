@@ -26,7 +26,7 @@ public class Main {
 	public static void main(String[] args) {
 		Main main = new Main();
 
-		File htmlFile = new File("tmp/index.html");
+		File htmlFile = new File("tmp/index_hang.html");
 		try {
 			doc = Jsoup.parse(htmlFile, "UTF-8", "");
 		} catch (IOException e) {
@@ -34,7 +34,7 @@ public class Main {
 		}
 
 		String sourceFile = "";
-		String path = "tmp/HelloWorld.java";
+		String path = "tmp/Hangman.java";
 
 		try {
 			sourceFile = readFile(path, Charset.defaultCharset());
@@ -47,6 +47,7 @@ public class Main {
 
 		String view = "ac = this;\n";
 		String global = "";
+		String setters = "";
 		ArrayList<Elem> list = main.parseFile();
 		if (table)
 			view += main.generateTableView();
@@ -54,7 +55,11 @@ public class Main {
 		for (int i = 0; i < list.size(); i++) {
 			Elem elem = list.get(i);
 			view += elem.generatePostJava();
+			if (!(elem instanceof Table)) {
+				view += "layout.addView(" + elem.getName() + ");\n";
+			}
 			global += elem.generateGlobals();
+			setters += elem.generateSetters();
 		}
 
 		view += "setContentView(layout);\n";
@@ -83,6 +88,8 @@ public class Main {
 		}
 		buff.insert(insert, view);
 		System.out.println(buff);
+		
+		System.out.println(setters);
 
 		int start = path.lastIndexOf("/") + 1;
 		int end = path.lastIndexOf(".");
@@ -106,11 +113,10 @@ public class Main {
 				+ "public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {\n";
 
 		String jsReceiver = "window.javascriptreceiver = function(str, callback) {\n";
-		
+
 		for (Elem elem : list) {
 			if (elem instanceof Table) {
 
-				Table t = (Table) elem;
 				ArrayList<Elem> elements = ((Table) elem).getElements();
 
 				for (Elem e : elements) {
@@ -128,10 +134,13 @@ public class Main {
 								+ ".setText(message);\n" + "}\n" + "});\n"
 								+ "return true;\n" + "}\n";
 						receiver += statement;
-						
-						jsReceiver += "var val = $(\"input[name=" + v.id + "]\").val();\n" +
-								"cordova.exec(callback, function(err) {\n" +
-								"callback('Nothing to echo.');}, \"JavascriptReceiver\", \""+ v.id +"\", [val]);\n";
+
+						jsReceiver += "var val = $(\"input[name="
+								+ v.id
+								+ "]\").val();\n"
+								+ "cordova.exec(callback, function(err) {\n"
+								+ "callback('Nothing to echo.');}, \"JavascriptReceiver\", \""
+								+ v.id + "\", [val]);\n";
 					}
 				}
 			}
@@ -140,9 +149,9 @@ public class Main {
 		receiver += "return false;\n}\n}\n";
 
 		System.out.println(receiver);
-		
+
 		jsReceiver += "};";
-		
+
 		System.out.println(jsReceiver);
 
 	}
@@ -156,25 +165,18 @@ public class Main {
 
 		ArrayList<Elem> list = new ArrayList<Elem>();
 
-		ArrayList<ArrayList<Elem>> rows = new ArrayList<ArrayList<Elem>>();
-		for (Element table : doc.select("table")) {
-			this.table = true;
-			for (Element row : table.select("tr")) {
-				ArrayList<Elem> tablerow = new ArrayList<Elem>();
-				Elements tds = row.select("td");
-				for (int i = 0; i < tds.size(); i++) {
-					for (int k = 0; k < tds.get(i).children().size(); k++) {
-						Elem elem = parseElement(tds.get(i).child(k));
-						if (elem != null) {
-							tablerow.add(elem);
-						}
-					}
+		Elements elms = doc.select("*");
+
+		for (Element elem : elms) {
+			if (elem.tagName().equals("table")) {
+				list.addAll(addTable(elem));
+			} else {
+				Elem ret = parseElement(elem);
+				if (ret != null && !list.contains(ret)) {
+					list.add(ret);
 				}
-				rows.add(tablerow);
 			}
 		}
-
-		list.add(new Table(rows));
 
 		return list;
 	}
@@ -184,11 +186,41 @@ public class Main {
 		if (!elem.attr("onclick").equals("")) {
 			String onclick = elem.attr("onclick");
 			String value = elem.attr("value");
-			return new Button(onclick, value);
+			return new Button(onclick, value, name);
 		} else if (!name.equals("") && changesValue(name)) {
 			return new TextView(name);
+		} else if (!name.equals("") && elem.attr("type").equals("text")) {
+			return new TextView(name);
+		} else if (!elem.text().equals("") && hasOwnText(elem)) {
+			return new TextLabel(name, elem.text());
 		}
 		return null;
+	}
+
+	public ArrayList<Elem> addTable(Element table) {
+		ArrayList<Elem> list = new ArrayList<Elem>();
+
+		ArrayList<ArrayList<Elem>> rows = new ArrayList<ArrayList<Elem>>();
+
+		this.table = true;
+		for (Element row : table.select("tr")) {
+			ArrayList<Elem> tablerow = new ArrayList<Elem>();
+			Elements tds = row.select("td");
+			for (int i = 0; i < tds.size(); i++) {
+				for (int k = 0; k < tds.get(i).children().size(); k++) {
+					Elem elem = parseElement(tds.get(i).child(k));
+					if (elem != null) {
+						tablerow.add(elem);
+					}
+				}
+			}
+			rows.add(tablerow);
+		}
+		table.remove();
+
+		list.add(new Table(rows, table.nodeName()));
+
+		return list;
 	}
 
 	public boolean changesValue(String name) {
@@ -215,23 +247,46 @@ public class Main {
 
 	}
 
-	public interface Elem {
-		public String generateGlobals();
-
-		public String generatePostJava();
-
-		public String getName();
+	public static boolean hasOwnText(Element element) {
+		return !element.ownText().isEmpty();
 	}
 
-	public class Button implements Elem {
+	public abstract class Elem {
+		String name;
+		String id;
+
+		public abstract String generateGlobals();
+
+		public abstract String generatePostJava();
+
+		public abstract String generateSetters();
+
+		public String getName() {
+			return this.name;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (obj instanceof Table) {
+				return obj.equals(this);
+			} else if (obj instanceof Elem) {
+				return id.equals(((Elem) obj).id);
+			}
+
+			return false;
+		}
+	}
+
+	public class Button extends Elem {
 		String onclick;
 		String value;
-		String name;
 
-		public Button(String onclick, String value) {
+		public Button(String onclick, String value, String id) {
 			this.value = value;
 			this.onclick = onclick;
 			this.name = "null";
+			this.id = id;
 		}
 
 		@Override
@@ -260,28 +315,27 @@ public class Main {
 		}
 
 		@Override
-		public String getName() {
-			return this.name;
+		public String generateGlobals() {
+			return "";
 		}
 
 		@Override
-		public String generateGlobals() {
+		public String generateSetters() {
 			return "";
 		}
 	}
 
-	public class Table implements Elem {
+	public class Table extends Elem {
 
 		ArrayList<ArrayList<Elem>> elements;
-		String name;
 		String globals = "";
 
-		public Table(ArrayList<ArrayList<Elem>> elements) {
+		public Table(ArrayList<ArrayList<Elem>> elements, String id) {
 			this.elements = elements;
 			this.name = "null";
+			this.id = id;
 		}
 
-		@Override
 		public String generatePostJava() {
 			String ret = "";
 			for (int i = 0; i < this.elements.size(); i++) {
@@ -304,14 +358,8 @@ public class Main {
 			return ret;
 		}
 
-		@Override
 		public String generateGlobals() {
 			return globals;
-		}
-
-		@Override
-		public String getName() {
-			return this.name;
 		}
 
 		public ArrayList<Elem> getElements() {
@@ -324,14 +372,35 @@ public class Main {
 			}
 
 			return list;
+		}
 
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof Table)
+				super.equals(obj);
+			if (obj instanceof Elem) {
+				for (Elem e : this.getElements()) {
+					if (e.equals(obj))
+						return true;
+				}
+			}
+			return false;
+		}
+
+		@Override
+		public String generateSetters() {
+			String ret = "";
+			ArrayList<Elem> elements = getElements();
+			for (int i = 0; i < elements.size(); i++) {
+				ret += elements.get(i).generateSetters();
+			}
+
+			return ret;
 		}
 
 	}
 
-	class TextView implements Elem {
-		String id;
-		String name;
+	class TextView extends Elem {
 
 		public TextView(String id) {
 			this.name = "null";
@@ -340,7 +409,7 @@ public class Main {
 
 		@Override
 		public String generatePostJava() {
-			String ret = "text" + variableIndex + " = new TextView(this);\n"
+			String ret = "text" + variableIndex + " = new EditText(this);\n"
 					+ "text" + variableIndex + ".setWidth(100);\n";
 			this.name = "text" + variableIndex;
 			variableIndex++;
@@ -348,13 +417,58 @@ public class Main {
 		}
 
 		@Override
-		public String getName() {
-			return name;
+		public String generateGlobals() {
+			return "public EditText " + getName() + ";\n";
+		}
+
+		@Override
+		public String generateSetters() {
+			String ret = "String " + name + "val = " + name + ".getText().toString();\n" 
+					+ "ac.loadUrl(\"javascript:$('[name=\\\"" + this.id
+					+ "\\\"]').val(\\\"\" + " + name + "val + \"\\\");\");\n";
+			return ret;
+		}
+
+	}
+
+	class TextLabel extends Elem {
+		String text;
+
+		public TextLabel(String id, String text) {
+			this.name = "null";
+			this.id = id;
+			this.text = text;
 		}
 
 		@Override
 		public String generateGlobals() {
-			return "public TextView " + getName() + ";\n";
+			return "";
 		}
+
+		@Override
+		public String generatePostJava() {
+
+			String ret = "TextView text" + variableIndex
+					+ " = new TextView(this);\n" + "text" + variableIndex
+					+ ".setWidth(100);\n" + "text" + variableIndex
+					+ ".setText(\"" + text + "\");\n";
+			this.name = "text" + variableIndex;
+			variableIndex++;
+			return ret;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof TextLabel) {
+				return this.text.equals(((TextLabel) obj).text);
+			} else
+				return obj.equals(this);
+		}
+
+		@Override
+		public String generateSetters() {
+			return "";
+		}
+
 	}
 }

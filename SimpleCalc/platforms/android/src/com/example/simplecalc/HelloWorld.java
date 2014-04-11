@@ -1,12 +1,35 @@
+/*
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+ */
+
 package com.example.simplecalc;
 
-import android.os.*;
+import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
+
 import org.apache.cordova.*;
 
 public class HelloWorld extends CordovaActivity {
-	public TextView text1;
+	public EditText text2;
+	public EditText text7;
+	public EditText text10;
+	public EditText text13;
 
 	public CordovaActivity ac;
 
@@ -14,233 +37,78 @@ public class HelloWorld extends CordovaActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		super.init();
-		super.loadUrl("file:///android_asset/www/index.html");
-
+		// Set by <content src="index.html" /> in config.xml
+		super.loadUrl(Config.getStartUrl());
+		// super.loadUrl("file:///android_asset/www/index.html")
 		ac = this;
 		TableLayout.LayoutParams tableParams = new TableLayout.LayoutParams(
 				TableLayout.LayoutParams.WRAP_CONTENT,
 				TableLayout.LayoutParams.WRAP_CONTENT);
 		TableLayout layout = new TableLayout(this);
 		layout.setLayoutParams(tableParams);
-		TableRow tableRow0 = new TableRow(this);
-		tableRow0.setLayoutParams(tableParams);
-		text1 = new TextView(this);
+		TextView text0 = new TextView(this);
+		text0.setWidth(100);
+		text0.setText("Hello World");
+		layout.addView(text0);
+		TextView text1 = new TextView(this);
 		text1.setWidth(100);
-		tableRow0.addView(text1);
-		Button button2 = new Button(this);
-		button2.setText("  C  ");
-		button2.setOnClickListener(new View.OnClickListener() {
+		text1.setText("Please enter your age:");
+		layout.addView(text1);
+		text2 = new EditText(this);
+		text2.setWidth(100);
+		layout.addView(text2);
+		TextView text3 = new TextView(this);
+		text3.setWidth(100);
+		text3.setText("Example: (november 1,1966)");
+		layout.addView(text3);
+		Button button4 = new Button(this);
+		button4.setText("Start Timer");
+		button4.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				ac.loadUrl("javascript:Clear();");
+				String text2val = text2.getText().toString();
+				ac.loadUrl("javascript:$('[name=\"age\"]').val(\"" + text2val + "\");");
+				String text7val = text7.getText().toString();
+				ac.loadUrl("javascript:$('[name=\"time1\"]').val(\"" + text7val + "\");");
+				String text10val = text10.getText().toString();
+				ac.loadUrl("javascript:$('[name=\"time2\"]').val(\"" + text10val + "\");");
+				String text13val = text13.getText().toString();
+				ac.loadUrl("javascript:$('[name=\"time3\"]').val(\"" + text13val + "\");");
+				ac.loadUrl("javascript:lifetimer(this.form);");
 				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
 			}
 		});
-		tableRow0.addView(button2);
-		Button button3 = new Button(this);
-		button3.setText("  CE ");
-		button3.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:ClearEntry();");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow0.addView(button3);
-		layout.addView(tableRow0);
-		TableRow tableRow4 = new TableRow(this);
-		tableRow4.setLayoutParams(tableParams);
-		Button button5 = new Button(this);
-		button5.setText("  7  ");
-		button5.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:NumPressed(7);");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow4.addView(button5);
-		Button button6 = new Button(this);
-		button6.setText("  8  ");
-		button6.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:NumPressed(8);");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow4.addView(button6);
-		Button button7 = new Button(this);
-		button7.setText("  9  ");
-		button7.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:NumPressed(9);");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow4.addView(button7);
-		Button button8 = new Button(this);
-		button8.setText(" +/- ");
-		button8.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:Neg();");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow4.addView(button8);
-		Button button9 = new Button(this);
-		button9.setText("  % ");
-		button9.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:Percent();");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow4.addView(button9);
-		layout.addView(tableRow4);
-		TableRow tableRow10 = new TableRow(this);
-		tableRow10.setLayoutParams(tableParams);
-		Button button11 = new Button(this);
-		button11.setText("  4  ");
-		button11.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:NumPressed(4);");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow10.addView(button11);
-		Button button12 = new Button(this);
-		button12.setText("  5  ");
-		button12.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:NumPressed(5);");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow10.addView(button12);
-		Button button13 = new Button(this);
-		button13.setText("  6  ");
-		button13.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:NumPressed(6);");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow10.addView(button13);
-		Button button14 = new Button(this);
-		button14.setText("  +  ");
-		button14.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:Operation('+');");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow10.addView(button14);
-		Button button15 = new Button(this);
-		button15.setText("   -   ");
-		button15.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:Operation('-');");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow10.addView(button15);
-		layout.addView(tableRow10);
-		TableRow tableRow16 = new TableRow(this);
-		tableRow16.setLayoutParams(tableParams);
-		Button button17 = new Button(this);
-		button17.setText("  1  ");
-		button17.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:NumPressed(1);");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow16.addView(button17);
-		Button button18 = new Button(this);
-		button18.setText("  2  ");
-		button18.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:NumPressed(2);");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow16.addView(button18);
-		Button button19 = new Button(this);
-		button19.setText("  3  ");
-		button19.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:NumPressed(3);");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow16.addView(button19);
-		Button button20 = new Button(this);
-		button20.setText("  *  ");
-		button20.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:Operation('*');");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow16.addView(button20);
-		Button button21 = new Button(this);
-		button21.setText("   /   ");
-		button21.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:Operation('/');");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow16.addView(button21);
-		layout.addView(tableRow16);
-		TableRow tableRow22 = new TableRow(this);
-		tableRow22.setLayoutParams(tableParams);
-		Button button23 = new Button(this);
-		button23.setText("  0  ");
-		button23.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:NumPressed(0);");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow22.addView(button23);
-		Button button24 = new Button(this);
-		button24.setText("   .  ");
-		button24.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:Decimal();");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow22.addView(button24);
-		Button button25 = new Button(this);
-		button25.setText("  =  ");
-		button25.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				ac.loadUrl("javascript:Operation('=');");
-				ac.loadUrl("javascript:window.javascriptreceiver(\"echome\", function(echoValue) {alert(echoValue == \"echome\");});");
-			}
-		});
-		tableRow22.addView(button25);
-		layout.addView(tableRow22);
+		layout.addView(button4);
+		TableRow tableRow5 = new TableRow(this);
+		tableRow5.setLayoutParams(tableParams);
+		TextView text6 = new TextView(this);
+		text6.setWidth(100);
+		text6.setText("You are days old:");
+		tableRow5.addView(text6);
+		text7 = new EditText(this);
+		text7.setWidth(100);
+		tableRow5.addView(text7);
+		layout.addView(tableRow5);
+		TableRow tableRow8 = new TableRow(this);
+		tableRow8.setLayoutParams(tableParams);
+		TextView text9 = new TextView(this);
+		text9.setWidth(100);
+		text9.setText("Plus hours old:");
+		tableRow8.addView(text9);
+		text10 = new EditText(this);
+		text10.setWidth(100);
+		tableRow8.addView(text10);
+		layout.addView(tableRow8);
+		TableRow tableRow11 = new TableRow(this);
+		tableRow11.setLayoutParams(tableParams);
+		TextView text12 = new TextView(this);
+		text12.setWidth(100);
+		text12.setText("Plus minutes old:");
+		tableRow11.addView(text12);
+		text13 = new EditText(this);
+		text13.setWidth(100);
+		tableRow11.addView(text13);
+		layout.addView(tableRow11);
 		setContentView(layout);
 	}
-
 }
